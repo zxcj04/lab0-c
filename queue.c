@@ -48,6 +48,23 @@ void q_free(struct list_head *l)
  */
 bool q_insert_head(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+
+    element_t *node = (element_t *) malloc(sizeof(element_t));
+    if (!node)
+        return false;
+    size_t len = strlen(s) + 1;
+    node->value = (char *) malloc(sizeof(char) * len);
+    if (!node->value) {
+        free(node);
+        return false;
+    }
+    strncpy(node->value, s, len);
+
+    LIST_HEAD(list);
+    node->list = list;
+    list_add(&node->list, head);
     return true;
 }
 
