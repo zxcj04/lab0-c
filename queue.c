@@ -273,20 +273,39 @@ void q_reverse(struct list_head *head)
 
 struct list_head *merge_sorted(struct list_head *list1, struct list_head *list2)
 {
-    if (!list1)
-        return list2;
-    if (!list2)
-        return list1;
-
-    element_t *cmp1 = list_entry(list1, element_t, list);
-    element_t *cmp2 = list_entry(list2, element_t, list);
-    if (strcmp(cmp1->value, cmp2->value) <= 0) {
-        list1->next = merge_sorted(list1->next, list2);
-        return list1;
-    } else {
-        list2->next = merge_sorted(list1, list2->next);
-        return list2;
+    struct list_head *result = NULL, *now = result;
+    while (true) {
+        element_t *cmp1 = list_entry(list1, element_t, list);
+        element_t *cmp2 = list_entry(list2, element_t, list);
+        if (strcmp(cmp1->value, cmp2->value) <= 0) {
+            if (result == NULL) {
+                result = list1;
+                now = result;
+            } else {
+                now->next = list1;
+                now = now->next;
+            }
+            list1 = list1->next;
+            if (!list1) {
+                now->next = list2;
+                break;
+            }
+        } else {
+            if (result == NULL) {
+                result = list2;
+                now = result;
+            } else {
+                now->next = list2;
+                now = now->next;
+            }
+            list2 = list2->next;
+            if (!list2) {
+                now->next = list1;
+                break;
+            }
+        }
     }
+    return result;
 }
 
 struct list_head *merge_sort(struct list_head *head)
