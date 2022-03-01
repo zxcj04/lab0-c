@@ -862,6 +862,56 @@ static bool do_show(int argc, char *argv[])
     return show_queue(0);
 }
 
+void swap_node(struct list_head *node1, struct list_head *node2)
+{
+    struct list_head *tmp = node1->prev;
+    list_move(node1, node2);
+    list_move(node2, tmp);
+}
+
+struct list_head *list_idx(struct list_head *head, int idx)
+{
+    do {
+        head = head->next;
+    } while (idx--);
+    return head;
+}
+
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    int len = q_size(head);
+    for (int i = len - 1; i > 0; i--) {
+        int idx = rand() % (i + 1);
+        swap_node(list_idx(head, idx), list_idx(head, i));
+    }
+}
+
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    if (!l_meta.l)
+        report(3, "Warning: Try to access null queue");
+    error_check();
+
+    srand((unsigned int) (time(NULL)));
+    set_noallocate_mode(true);
+    if (exception_setup(true))
+        q_shuffle(l_meta.l);
+    exception_cancel();
+
+    set_noallocate_mode(false);
+
+    show_queue(3);
+    return !error_check();
+}
+
 static void console_init()
 {
     ADD_COMMAND(new, "                | Create new queue");
@@ -890,6 +940,7 @@ static void console_init()
     ADD_COMMAND(
         size, " [n]            | Compute queue size n times (default: n == 1)");
     ADD_COMMAND(show, "                | Show queue contents");
+    ADD_COMMAND(shuffle, "                | Shuffle queue");
     ADD_COMMAND(dm, "                | Delete middle node in queue");
     ADD_COMMAND(
         dedup, "                | Delete all nodes that have duplicate string");
